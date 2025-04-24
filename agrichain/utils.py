@@ -1,6 +1,8 @@
+from django.db import transaction
+
 from .model.cart import Cart
 from .model.priceSlab import PriceSlab
-from .model.product import Product
+from agrichain.model.product import Product
 
 
 def get_or_create_cart(userOb,cart_id="123"):
@@ -17,8 +19,14 @@ def get_or_create_cart(userOb,cart_id="123"):
 
 def init():
     #DELETE OLD
-    Product.objects.all().delete()
-    PriceSlab.objects.all().delete()
+
+
+    try:
+        with transaction.atomic():
+            PriceSlab.objects.all().delete()
+            Product.objects.all().delete()
+    except Exception as e:
+        print(f"Error deleting products: {e}")
 
     # initalize product and price slabs
     product_a = Product.objects.create(name='A')
@@ -29,7 +37,6 @@ def init():
     #addding price slabs
     PriceSlab.objects.create( product=product_a, qty=1 , price=50 )
     PriceSlab.objects.create( product=product_a, qty=2 , price=80 )
-
 
     PriceSlab.objects.create( product=product_b, qty=1 , price=30 )
     PriceSlab.objects.create( product=product_b, qty=2 , price=50 )

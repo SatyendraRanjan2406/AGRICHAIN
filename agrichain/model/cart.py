@@ -1,5 +1,6 @@
 from django.db import models
 
+from .priceSlab import PriceSlab
 from .product import Product
 from ..exception import ItemNotFoundException, CartItemException, CartException
 from accounts.models import User
@@ -32,8 +33,8 @@ class Cart(models.Model):
 
         #save to cart item
         try:
-            cart_item,created = CartItem.objects.get_or_create( product=product )
-            cart_item.quantity += 1
+            cart_item,created = CartItem.objects.get_or_create( product=product,cart=self )
+            cart_item.qty += 1
             cart_item.save()
             return True
         except Exception as e:
@@ -83,7 +84,7 @@ class Cart(models.Model):
         try:
             cart_items = self.cart_items.all()
             for item in cart_items:
-                slabs = item.price_slabs.all().order_by('-qty')
+                slabs = PriceSlab.objects.all().filter(product=item.product).order_by('-qty')
 
                 # qty in cart of cart item
                 remaining_qty = item.qty
